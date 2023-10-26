@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func newRouter(userProcessor *user.Processor) *mux.Router {
+func newRouter(userProcessor *user.Service) *mux.Router {
 	router := mux.NewRouter()
 
 	// ENDPOINTS

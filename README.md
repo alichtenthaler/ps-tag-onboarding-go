@@ -9,7 +9,7 @@ run:
 docker-compose up --build
 ```
 
-## Test
+## Unit Test and Integration Test
 
 If application is running, stop it with:
 
@@ -17,10 +17,9 @@ If application is running, stop it with:
 docker stop ps-tag-onboarding-go-app-1 ps-tag-onboarding-go-mongo-1
 ```
 
-And then run tests with:
+And then run test containers and tests with:
 
 ```
-cd tests/
-docker-compose -f docker-compose-test.yml up -d
-go test
+docker-compose -f ./tests/docker-compose-test.yml up -d
+go test ./...
 ```

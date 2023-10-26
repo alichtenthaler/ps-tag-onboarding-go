@@ -16,7 +16,7 @@ type Rest struct {
 }
 
 // New creates the http handler
-func New(userProcessor *user.Processor) *Rest {
+func New(userProcessor *user.Service) *Rest {
 
 	return &Rest{
 		&http.Server{

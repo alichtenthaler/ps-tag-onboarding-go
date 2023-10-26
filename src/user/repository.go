@@ -12,17 +12,33 @@ const (
 	UserCollection = "user"
 )
 
-func (up *Processor) create(user User) (primitive.ObjectID, error) {
+type UserRepositoryI interface {
+	create(ctx context.Context, user User) (primitive.ObjectID, error)
+	getByID(ctx context.Context, id primitive.ObjectID) (User, error)
+	existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool
+}
 
-	res, err := up.db.Collection(UserCollection).InsertOne(context.TODO(), user)
+type UserRepository struct {
+	db *mongo.Database
+}
+
+func newRepository(db *mongo.Database) *UserRepository {
+	return &UserRepository{
+		db: db,
+	}
+}
+
+func (repo UserRepository) create(ctx context.Context, user User) (primitive.ObjectID, error) {
+
+	res, err := repo.db.Collection(UserCollection).InsertOne(ctx, user)
 	return res.InsertedID.(primitive.ObjectID), err
 }
 
-func (up *Processor) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
+func (repo UserRepository) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
 
 	var user User
 
-	err := up.db.Collection(UserCollection).FindOne(ctx, bson.M{"_id": id}).Decode(&user)
+	err := repo.db.Collection(UserCollection).FindOne(ctx, bson.M{"_id": id}).Decode(&user)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return user, nil
 	}
@@ -30,9 +46,9 @@ func (up *Processor) getByID(ctx context.Context, id primitive.ObjectID) (User, 
 	return user, err
 }
 
-func (up *Processor) existsByFirstNameAndLastName(firstName, lastName string) bool {
+func (repo UserRepository) existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool {
 
-	if errors.Is(up.db.Collection(UserCollection).FindOne(context.TODO(), bson.M{"firstname": firstName, "lastname": lastName}).Err(), mongo.ErrNoDocuments) {
+	if errors.Is(repo.db.Collection(UserCollection).FindOne(ctx, bson.M{"firstname": firstName, "lastname": lastName}).Err(), mongo.ErrNoDocuments) {
 		return false
 	}
 

@@ -1,28 +1,43 @@
 package user
 
 import (
+	"context"
 	"strings"
 )
 
-func (up *Processor) validate(user User) []string {
+type ValidatorI interface {
+	validate(ctx context.Context, user User) []string
+}
+
+type Validator struct {
+	repo UserRepositoryI
+}
+
+func newValidator(repo *UserRepository) *Validator {
+	return &Validator{
+		repo: repo,
+	}
+}
+
+func (v *Validator) validate(ctx context.Context, user User) []string {
 	var errs []string
 
-	if err := up.validateAge(user); err != "" {
+	if err := v.validateAge(user); err != "" {
 		errs = append(errs, err)
 	}
 
-	if err := up.validateEmail(user); err != "" {
+	if err := v.validateEmail(user); err != "" {
 		errs = append(errs, err)
 	}
 
-	if err := up.validateName(user); err != "" {
+	if err := v.validateName(ctx, user); err != "" {
 		errs = append(errs, err)
 	}
 
 	return errs
 }
 
-func (up *Processor) validateAge(user User) string {
+func (v *Validator) validateAge(user User) string {
 	if user.Age < 18 {
 		return ErrorAgeMinimum
 	}
@@ -30,7 +45,7 @@ func (up *Processor) validateAge(user User) string {
 	return ""
 }
 
-func (up *Processor) validateEmail(user User) string {
+func (v *Validator) validateEmail(user User) string {
 	if user.Email == "" {
 		return ErrorEmailRequired
 	}
@@ -42,12 +57,12 @@ func (up *Processor) validateEmail(user User) string {
 	return ""
 }
 
-func (up *Processor) validateName(user User) string {
+func (v *Validator) validateName(ctx context.Context, user User) string {
 	if user.FirstName == "" || user.LastName == "" {
 		return ErrorNameRequired
 	}
 
-	if up.existsByFirstNameAndLastName(user.FirstName, user.LastName) {
+	if v.repo.existsByFirstNameAndLastName(ctx, user.FirstName, user.LastName) {
 		return ErrorNameUnique
 	}
 

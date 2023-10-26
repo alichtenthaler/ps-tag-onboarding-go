@@ -29,8 +29,8 @@ func main() {
 	dbConnection = createDBConnection()
 	log.Info().Msg("Connected to the database")
 
-	userProcessor := user.New(dbConnection)
-	server := startRestServer(userProcessor)
+	userService := user.New(dbConnection)
+	server := startRestServer(userService)
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -57,7 +57,7 @@ func createDBConnection() *mongo.Database {
 	return db
 }
 
-func startRestServer(userProcessor *user.Processor) *rest.Rest {
+func startRestServer(userProcessor *user.Service) *rest.Rest {
 	restServer := rest.New(
 		userProcessor,
 	)
