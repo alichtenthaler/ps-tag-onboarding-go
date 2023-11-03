@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/adapter/in/web"
+	user2 "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -17,7 +18,7 @@ import (
 
 func TestUserCreationOK(t *testing.T) {
 
-	u := user.User{
+	u := user2.User{
 		FirstName: "Ann",
 		LastName: "Peterson",
 		Email: "a@p.com",
@@ -36,7 +37,7 @@ func TestUserCreationOK(t *testing.T) {
 
 	assert.Exactly(t, http.StatusCreated, code)
 
-	var respUser user.User
+	var respUser user2.User
 	err = json.Unmarshal(resp, &respUser)
 	if err != nil {
 		log.Fatal(t, err, resp)
@@ -53,7 +54,7 @@ func TestUserCreationValidationFails(t *testing.T) {
 	firstNameNotUnique := "TestUserCreationValidationFails"
 	lastNameNotUnique := "ErrorNameUnique"
 
-	setUpTestInsertUser(t, user.User{
+	setUpTestInsertUser(t, user2.User{
 		FirstName: firstNameNotUnique,
 		LastName: lastNameNotUnique,
 		Email: "email@email.com",
@@ -62,65 +63,65 @@ func TestUserCreationValidationFails(t *testing.T) {
 
 	testCases := []struct {
 		name            string
-		user            user.User
-		validationError response.ValidationError
+		user            user2.User
+		validationError web.ValidationError
 	}{
 		{
 			name: "Missing user first name",
-			user: user.User{
+			user: user2.User{
 				LastName: "ann",
 				Email:    "s@s.com",
 				Age:      22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorNameRequired}},
+			validationError: web.ValidationError{Error: user2.ResponseValidationFailed, Details: []string{user2.ErrorNameRequired}},
 		},
 		{
 			name: "Missing user last name",
-			user: user.User{
+			user: user2.User{
 				FirstName: "ann",
 				Email:     "s@s.com",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorNameRequired}},
+			validationError: web.ValidationError{Error: user2.ResponseValidationFailed, Details: []string{user2.ErrorNameRequired}},
 		},
 		{
 			name: "User minimum age not reached",
-			user: user.User{
+			user: user2.User{
 				FirstName: "ann",
 				LastName:  "peterson",
 				Email:     "s@s.com",
 				Age:       12,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorAgeMinimum}},
+			validationError: web.ValidationError{Error: user2.ResponseValidationFailed, Details: []string{user2.ErrorAgeMinimum}},
 		},
 		{
 			name: "Missing user email",
-			user: user.User{
+			user: user2.User{
 				FirstName: "ann",
 				LastName:  "peterson",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorEmailRequired}},
+			validationError: web.ValidationError{Error: user2.ResponseValidationFailed, Details: []string{user2.ErrorEmailRequired}},
 		},
 		{
 			name: "User wrong email format",
-			user: user.User{
+			user: user2.User{
 				FirstName: "ann",
 				LastName:  "peterson",
 				Email:     "ss.com",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorEmailFormat}},
+			validationError: web.ValidationError{Error: user2.ResponseValidationFailed, Details: []string{user2.ErrorEmailFormat}},
 		},
 		{
 			name: "First and lastname are not unique",
-			user: user.User{
+			user: user2.User{
 				FirstName: firstNameNotUnique,
 				LastName:  lastNameNotUnique,
 				Email:     "s@s.com",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorNameUnique}},
+			validationError: web.ValidationError{Error: user2.ResponseValidationFailed, Details: []string{user2.ErrorNameUnique}},
 		},
 	}
 
@@ -139,7 +140,7 @@ func TestUserCreationValidationFails(t *testing.T) {
 
 			assert.Exactly(t, http.StatusBadRequest, code)
 
-			var errResp response.ValidationError
+			var errResp web.ValidationError
 			err = json.Unmarshal(resp, &errResp)
 			if err != nil {
 				log.Fatal(t, err, resp)
@@ -152,7 +153,7 @@ func TestUserCreationValidationFails(t *testing.T) {
 
 func TestUserGetExistingID(t *testing.T) {
 
-	existingID := setUpTestInsertUser(t, user.User{
+	existingID := setUpTestInsertUser(t, user2.User{
 			FirstName: "TestUserGetExistingID",
 			LastName: "Lastname",
 			Email: "t@l.com",
@@ -166,7 +167,7 @@ func TestUserGetExistingID(t *testing.T) {
 
 	assert.Exactly(t, http.StatusOK, code)
 
-	var respUser user.User
+	var respUser user2.User
 	err = json.Unmarshal(resp, &respUser)
 	if err != nil {
 		log.Fatal(t, err, resp)
@@ -183,17 +184,17 @@ func TestUserGetNotExistingID(t *testing.T) {
 		panic(err)
 	}
 
- var respError response.GenericError
+	var respError web.GenericError
 	err = json.Unmarshal(resp, &respError)
 	if err != nil {
 		log.Fatal(t, err, resp)
 	}
 
 	assert.Exactly(t, http.StatusNotFound, code)
-	assert.Equal(t, user.ResponseUserNotFound, respError.Error)
+	assert.Equal(t, user2.ResponseUserNotFound, respError.Error)
 }
 
-func setUpTestInsertUser(t *testing.T, existingUser user.User) primitive.ObjectID {
+func setUpTestInsertUser(t *testing.T, existingUser user2.User) primitive.ObjectID {
 	res, err := testDBConnection.Collection(user.UserCollection).InsertOne(context.Background(), existingUser)
 	if err != nil {
 		t.Errorf("error inserting user in the database: %s", err.Error())

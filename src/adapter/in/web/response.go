@@ -1,4 +1,4 @@
-package response
+package web
 
 import (
 	"encoding/json"
@@ -39,3 +39,4 @@ func SendValidationError(w http.ResponseWriter, statusCode int, err ValidationEr
 		Details: err.Details,
 	})
 }
+

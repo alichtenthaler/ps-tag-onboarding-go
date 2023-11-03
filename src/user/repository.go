@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,8 +14,8 @@ const (
 )
 
 type UserRepositoryI interface {
-	create(ctx context.Context, user User) (primitive.ObjectID, error)
-	getByID(ctx context.Context, id primitive.ObjectID) (User, error)
+	create(ctx context.Context, user domain.User) (primitive.ObjectID, error)
+	getByID(ctx context.Context, id primitive.ObjectID) (domain.User, error)
 	existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool
 }
 
@@ -28,15 +29,15 @@ func newRepository(db *mongo.Database) *UserRepository {
 	}
 }
 
-func (repo UserRepository) create(ctx context.Context, user User) (primitive.ObjectID, error) {
+func (repo UserRepository) create(ctx context.Context, user domain.User) (primitive.ObjectID, error) {
 
 	res, err := repo.db.Collection(UserCollection).InsertOne(ctx, user)
 	return res.InsertedID.(primitive.ObjectID), err
 }
 
-func (repo UserRepository) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
+func (repo UserRepository) getByID(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
 
-	var user User
+	var user domain.User
 
 	err := repo.db.Collection(UserCollection).FindOne(ctx, bson.M{"_id": id}).Decode(&user)
 	if errors.Is(err, mongo.ErrNoDocuments) {

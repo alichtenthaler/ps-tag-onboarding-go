@@ -1,4 +1,4 @@
-package user
+package domain
 
 const (
 	ErrorAgeMinimum          = "user does not meet minimum age requirement"

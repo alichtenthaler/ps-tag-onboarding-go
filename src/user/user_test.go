@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/adapter/in/web"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,11 +16,11 @@ import (
 )
 
 type MockUserValidator struct {
-	ValidatorI
-	ValidateFunc func(ctx context.Context, user User) []string
+	domain.ValidatorI
+	ValidateFunc func(ctx context.Context, user domain.User) []string
 }
 
-func (v MockUserValidator) validate(ctx context.Context, user User) []string {
+func (v MockUserValidator) validate(ctx context.Context, user domain.User) []string {
 	if v.ValidateFunc != nil {
 		return v.ValidateFunc(ctx, user)
 	}
@@ -29,12 +30,12 @@ func (v MockUserValidator) validate(ctx context.Context, user User) []string {
 
 type MockUserRepository struct {
 	UserRepositoryI
-	CreateFunc                       func(ctx context.Context, user User) (primitive.ObjectID, error)
-	GetByIDFunc                      func(ctx context.Context, id primitive.ObjectID) (User, error)
+	CreateFunc  func(ctx context.Context, user domain.User) (primitive.ObjectID, error)
+	GetByIDFunc func(ctx context.Context, id primitive.ObjectID) (domain.User, error)
 	ExistsByFirstNameAndLastNameFunc func(ctx context.Context, firstName, lastName string) bool
 }
 
-func (r MockUserRepository) create(ctx context.Context, user User) (primitive.ObjectID, error) {
+func (r MockUserRepository) create(ctx context.Context, user domain.User) (primitive.ObjectID, error) {
 	if r.CreateFunc != nil {
 		return r.CreateFunc(ctx, user)
 	}
@@ -42,7 +43,7 @@ func (r MockUserRepository) create(ctx context.Context, user User) (primitive.Ob
 	return r.UserRepositoryI.create(ctx, user)
 }
 
-func (r MockUserRepository) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
+func (r MockUserRepository) getByID(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
 	if r.GetByIDFunc != nil {
 		return r.GetByIDFunc(ctx, id)
 	}
@@ -60,7 +61,7 @@ func (r MockUserRepository) existsByFirstNameAndLastName(ctx context.Context, fi
 
 func TestCreateUserHandlerOK(t *testing.T) {
 	payload := `{"firstName":"John","lastName":"Johnson","age":30,"email":"j@j.com"}`
-	var user User
+	var user domain.User
 	err := json.Unmarshal([]byte(payload), &user)
 	if err != nil {
 		t.Fatal(err)
@@ -68,7 +69,7 @@ func TestCreateUserHandlerOK(t *testing.T) {
 
 	userService := &Service{
 		repo: MockUserRepository{
-			CreateFunc: func(ctx context.Context, user User) (primitive.ObjectID, error) {
+			CreateFunc: func(ctx context.Context, user user.User) (primitive.ObjectID, error) {
 				return primitive.NewObjectID(), nil
 			},
 			ExistsByFirstNameAndLastNameFunc: func(ctx context.Context, firstName, lastName string) bool {
@@ -76,7 +77,7 @@ func TestCreateUserHandlerOK(t *testing.T) {
 			},
 		},
 		validator: MockUserValidator{
-			ValidateFunc: func(ctx context.Context, user User) []string {
+			ValidateFunc: func(ctx context.Context, user user.User) []string {
 				return []string{}
 			},
 		},
@@ -90,7 +91,7 @@ func TestCreateUserHandlerOK(t *testing.T) {
 	res := httptest.NewRecorder()
 	userService.CreateUser(res, req)
 
-	var responseUser User
+	var responseUser user.User
 	err = json.NewDecoder(res.Body).Decode(&responseUser)
 	if err != nil {
 		t.Fatal(err)
@@ -105,7 +106,7 @@ func TestCreateUserHandlerOK(t *testing.T) {
 
 func TestCreateUserHandlerFailValidation(t *testing.T) {
 	payload := `{"firstName":"John","lastName":"Johnson","age":30,"email":"j@j.com"}`
-	var user User
+	var user domain.User
 	err := json.Unmarshal([]byte(payload), &user)
 	if err != nil {
 		t.Fatal(err)
@@ -113,13 +114,13 @@ func TestCreateUserHandlerFailValidation(t *testing.T) {
 
 	userService := &Service{
 		repo: MockUserRepository{
-			CreateFunc: func(ctx context.Context, user User) (primitive.ObjectID, error) {
+			CreateFunc: func(ctx context.Context, user user.User) (primitive.ObjectID, error) {
 				return primitive.NewObjectID(), nil
 			},
 		},
 		validator: MockUserValidator{
-			ValidateFunc: func(ctx context.Context, user User) []string {
-				return []string{ErrorNameUnique, ErrorEmailRequired}
+			ValidateFunc: func(ctx context.Context, user user.User) []string {
+				return []string{user.ErrorNameUnique, user.ErrorEmailRequired}
 			},
 		},
 	}
@@ -132,16 +133,16 @@ func TestCreateUserHandlerFailValidation(t *testing.T) {
 	res := httptest.NewRecorder()
 	userService.CreateUser(res, req)
 
-	var responseError response.ValidationError
+	var responseError web.ValidationError
 	err = json.NewDecoder(res.Body).Decode(&responseError)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, http.StatusBadRequest, res.Code)
-	assert.Equal(t, ErrorNameUnique, responseError.Details[0])
-	assert.Equal(t, ErrorEmailRequired, responseError.Details[1])
-	assert.Equal(t, ResponseValidationFailed, responseError.Error)
+	assert.Equal(t, user.ErrorNameUnique, responseError.Details[0])
+	assert.Equal(t, user.ErrorEmailRequired, responseError.Details[1])
+	assert.Equal(t, user.ResponseValidationFailed, responseError.Error)
 }
 
 func TestUserValidate(t *testing.T) {
@@ -160,85 +161,85 @@ func TestUserValidate(t *testing.T) {
 
 	testCases := []struct {
 		name            string
-		user            User
+		user            domain.User
 		validationError []string
 		validatorRepo   MockUserRepository
 	}{
 		{
 			name: "Missing user first name",
-			user: User{
+			user: domain.User{
 				LastName: "ann",
 				Email:    "a@a.com",
 				Age:      22,
 			},
-			validationError: []string{ErrorNameRequired},
+			validationError: []string{domain.ErrorNameRequired},
 		},
 		{
 			name: "Missing user last name",
-			user: User{
+			user: domain.User{
 				FirstName: "ann",
 				Email:     "a@a.com",
 				Age:       22,
 			},
-			validationError: []string{ErrorNameRequired},
+			validationError: []string{domain.ErrorNameRequired},
 		},
 		{
 			name: "User with the same first and last name already exists",
-			user: User{
+			user: domain.User{
 				FirstName: "a",
 				LastName:  "ann",
 				Email:     "a@a.com",
 				Age:       22,
 			},
-			validationError: []string{ErrorNameUnique},
+			validationError: []string{domain.ErrorNameUnique},
 			validatorRepo:   mockRepoNameConflictTrue,
 		},
 		{
 			name: "Missing user email",
-			user: User{
+			user: domain.User{
 				FirstName: "a",
 				LastName:  "ann",
 				Age:       22,
 			},
-			validationError: []string{ErrorEmailRequired},
+			validationError: []string{domain.ErrorEmailRequired},
 			validatorRepo:   mockRepoNameConflictFalse,
 		},
 		{
 			name: "User email not in a proper format",
-			user: User{
+			user: domain.User{
 				FirstName: "a",
 				LastName:  "ann",
 				Email:     "aa.com",
 				Age:       18,
 			},
-			validationError: []string{ErrorEmailFormat},
+			validationError: []string{domain.ErrorEmailFormat},
 			validatorRepo:   mockRepoNameConflictFalse,
 		},
 		{
 			name: "Minimum age required",
-			user: User{
+			user: domain.User{
 				FirstName: "a",
 				LastName:  "ann",
 				Email:     "a@a.com",
 				Age:       17,
 			},
-			validationError: []string{ErrorAgeMinimum},
+			validationError: []string{domain.ErrorAgeMinimum},
 			validatorRepo:   mockRepoNameConflictFalse,
 		},
 		{
 			name: "User fails validation on multiple fields",
-			user: User{
+			user: domain.User{
 				LastName: "ann",
 				Email:    "aa.com",
 				Age:      17,
 			},
-			validationError: []string{ErrorAgeMinimum, ErrorEmailFormat, ErrorNameRequired},
+			validationError: []string{domain.ErrorAgeMinimum, domain.ErrorEmailFormat, domain.ErrorNameRequired},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(tt *testing.T) {
-			validator := Validator{
+			validator := domain.Validator{
 				repo: tc.validatorRepo,
 			}
 
@@ -250,7 +251,7 @@ func TestUserValidate(t *testing.T) {
 
 func TestFindUserByIDHandlerOK(t *testing.T) {
 	userID := primitive.NewObjectID()
-	userToBeReturned := User{
+	userToBeReturned := domain.User{
 		ID:        userID,
 		FirstName: "John",
 		LastName:  "Johnson",
@@ -260,7 +261,7 @@ func TestFindUserByIDHandlerOK(t *testing.T) {
 
 	userService := &Service{
 		repo: MockUserRepository{
-			GetByIDFunc: func(ctx context.Context, id primitive.ObjectID) (User, error) {
+			GetByIDFunc: func(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
 				return userToBeReturned, nil
 			},
 		},
@@ -276,7 +277,7 @@ func TestFindUserByIDHandlerOK(t *testing.T) {
 	res := httptest.NewRecorder()
 	userService.FindUserById(res, req)
 
-	var respUser User
+	var respUser domain.User
 	err = json.NewDecoder(res.Body).Decode(&respUser)
 	if err != nil {
 		t.Fatal(err)
@@ -300,12 +301,12 @@ func TestFindUserByIDHandlerNotFound(t *testing.T) {
 	res := httptest.NewRecorder()
 	userService.FindUserById(res, req)
 
-	var respError response.GenericError
+	var respError web.GenericError
 	err = json.NewDecoder(res.Body).Decode(&respError)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, http.StatusNotFound, res.Code)
-	assert.Equal(t, ResponseUserNotFound, respError.Error)
+	assert.Equal(t, domain.ResponseUserNotFound, respError.Error)
 }
