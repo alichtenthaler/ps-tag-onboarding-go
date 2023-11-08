@@ -8,29 +8,41 @@ import (
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/mongo"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
-var dbConnection *mongo.Database
-
 func main() {
-	log.Logger = zerolog.New(zerolog.ConsoleWriter{
+	configs := config.Load()
+
+	var logOutput io.Writer
+	logOutput = zerolog.ConsoleWriter{
 		Out:        os.Stderr,
 		TimeFormat: "2006-01-02 15:04:05",
-	}).With().Timestamp().Logger()
+	}
+	if configs.LogFormat == "json" {
+		logOutput = os.Stderr
+	}
+	log.Logger = zerolog.New(logOutput).With().Timestamp().Logger()
 
-	config.Load()
+	zerolog.SetGlobalLevel(configs.LogLevel)
 
-	log.Info().Msg("Waiting for connection to database...")
-	dbConnection = createDBConnection()
+	log.Info().Msg("Waiting for connection to database....")
+
+	dbConnection, err := database.Connect(configs.DBConfig)
+	if err != nil {
+		log.Fatal().Msgf("Connection to the database failed: %s", err)
+	}
+
 	log.Info().Msg("Connected to the database")
 
 	userService := user.New(dbConnection)
-	server := startRestServer(userService)
+
+	log.Info().Msg("Starting HTTP server")
+	server := startRestServer(configs.Port, userService)
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -48,17 +60,9 @@ func main() {
 	log.Info().Msg("Server was shutdown properly")
 }
 
-func createDBConnection() *mongo.Database {
-	db, err := database.Connect(config.StringDBConnection)
-	if err != nil {
-		log.Fatal().Msgf("Connection to the database failed: %s", err)
-	}
-
-	return db
-}
-
-func startRestServer(userProcessor *user.Service) *rest.Rest {
+func startRestServer(port int, userProcessor *user.Service) *rest.Rest {
 	restServer := rest.New(
+		port,
 		userProcessor,
 	)
 

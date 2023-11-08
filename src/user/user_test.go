@@ -14,21 +14,8 @@ import (
 	"testing"
 )
 
-type MockUserValidator struct {
-	ValidatorI
-	ValidateFunc func(ctx context.Context, user User) []string
-}
-
-func (v MockUserValidator) validate(ctx context.Context, user User) []string {
-	if v.ValidateFunc != nil {
-		return v.ValidateFunc(ctx, user)
-	}
-
-	return v.ValidatorI.validate(ctx, user)
-}
-
 type MockUserRepository struct {
-	UserRepositoryI
+	Repository
 	CreateFunc                       func(ctx context.Context, user User) (primitive.ObjectID, error)
 	GetByIDFunc                      func(ctx context.Context, id primitive.ObjectID) (User, error)
 	ExistsByFirstNameAndLastNameFunc func(ctx context.Context, firstName, lastName string) bool
@@ -39,7 +26,7 @@ func (r MockUserRepository) create(ctx context.Context, user User) (primitive.Ob
 		return r.CreateFunc(ctx, user)
 	}
 
-	return r.UserRepositoryI.create(ctx, user)
+	return r.Repository.create(ctx, user)
 }
 
 func (r MockUserRepository) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
@@ -47,7 +34,7 @@ func (r MockUserRepository) getByID(ctx context.Context, id primitive.ObjectID) 
 		return r.GetByIDFunc(ctx, id)
 	}
 
-	return r.UserRepositoryI.getByID(ctx, id)
+	return r.Repository.getByID(ctx, id)
 }
 
 func (r MockUserRepository) existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool {
@@ -55,7 +42,7 @@ func (r MockUserRepository) existsByFirstNameAndLastName(ctx context.Context, fi
 		return r.ExistsByFirstNameAndLastNameFunc(ctx, firstName, lastName)
 	}
 
-	return r.UserRepositoryI.existsByFirstNameAndLastName(ctx, firstName, lastName)
+	return r.Repository.existsByFirstNameAndLastName(ctx, firstName, lastName)
 }
 
 func TestCreateUserHandlerOK(t *testing.T) {
@@ -73,11 +60,6 @@ func TestCreateUserHandlerOK(t *testing.T) {
 			},
 			ExistsByFirstNameAndLastNameFunc: func(ctx context.Context, firstName, lastName string) bool {
 				return false
-			},
-		},
-		validator: MockUserValidator{
-			ValidateFunc: func(ctx context.Context, user User) []string {
-				return []string{}
 			},
 		},
 	}
@@ -104,7 +86,7 @@ func TestCreateUserHandlerOK(t *testing.T) {
 }
 
 func TestCreateUserHandlerFailValidation(t *testing.T) {
-	payload := `{"firstName":"John","lastName":"Johnson","age":30,"email":"j@j.com"}`
+	payload := `{"firstName":"John","lastName":"Johnson","age":30,"email":""}`
 	var user User
 	err := json.Unmarshal([]byte(payload), &user)
 	if err != nil {
@@ -116,10 +98,8 @@ func TestCreateUserHandlerFailValidation(t *testing.T) {
 			CreateFunc: func(ctx context.Context, user User) (primitive.ObjectID, error) {
 				return primitive.NewObjectID(), nil
 			},
-		},
-		validator: MockUserValidator{
-			ValidateFunc: func(ctx context.Context, user User) []string {
-				return []string{ErrorNameUnique, ErrorEmailRequired}
+			ExistsByFirstNameAndLastNameFunc: func(ctx context.Context, firstName, lastName string) bool {
+				return true
 			},
 		},
 	}
@@ -139,24 +119,12 @@ func TestCreateUserHandlerFailValidation(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusBadRequest, res.Code)
-	assert.Equal(t, ErrorNameUnique, responseError.Details[0])
-	assert.Equal(t, ErrorEmailRequired, responseError.Details[1])
+	assert.Equal(t, ErrorEmailRequired, responseError.Details[0])
+	assert.Equal(t, ErrorNameUnique, responseError.Details[1])
 	assert.Equal(t, ResponseValidationFailed, responseError.Error)
 }
 
 func TestUserValidate(t *testing.T) {
-
-	mockRepoNameConflictFalse := MockUserRepository{
-		ExistsByFirstNameAndLastNameFunc: func(ctx context.Context, firstName, lastName string) bool {
-			return false
-		},
-	}
-
-	mockRepoNameConflictTrue := MockUserRepository{
-		ExistsByFirstNameAndLastNameFunc: func(ctx context.Context, firstName, lastName string) bool {
-			return true
-		},
-	}
 
 	testCases := []struct {
 		name            string
@@ -183,17 +151,6 @@ func TestUserValidate(t *testing.T) {
 			validationError: []string{ErrorNameRequired},
 		},
 		{
-			name: "User with the same first and last name already exists",
-			user: User{
-				FirstName: "a",
-				LastName:  "ann",
-				Email:     "a@a.com",
-				Age:       22,
-			},
-			validationError: []string{ErrorNameUnique},
-			validatorRepo:   mockRepoNameConflictTrue,
-		},
-		{
 			name: "Missing user email",
 			user: User{
 				FirstName: "a",
@@ -201,7 +158,6 @@ func TestUserValidate(t *testing.T) {
 				Age:       22,
 			},
 			validationError: []string{ErrorEmailRequired},
-			validatorRepo:   mockRepoNameConflictFalse,
 		},
 		{
 			name: "User email not in a proper format",
@@ -212,7 +168,6 @@ func TestUserValidate(t *testing.T) {
 				Age:       18,
 			},
 			validationError: []string{ErrorEmailFormat},
-			validatorRepo:   mockRepoNameConflictFalse,
 		},
 		{
 			name: "Minimum age required",
@@ -223,7 +178,6 @@ func TestUserValidate(t *testing.T) {
 				Age:       17,
 			},
 			validationError: []string{ErrorAgeMinimum},
-			validatorRepo:   mockRepoNameConflictFalse,
 		},
 		{
 			name: "User fails validation on multiple fields",
@@ -238,12 +192,8 @@ func TestUserValidate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(tt *testing.T) {
-			validator := Validator{
-				repo: tc.validatorRepo,
-			}
-
-			errs := validator.validate(context.Background(), tc.user)
-			assert.Equal(t, tc.validationError, errs)
+			errs := tc.user.validate()
+			assert.Equal(tt, tc.validationError, errs)
 		})
 	}
 }

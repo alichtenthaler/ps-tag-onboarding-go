@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
@@ -13,16 +14,21 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+
 type Service struct {
-	repo      UserRepositoryI
-	validator ValidatorI
+	repo Repository
+}
+
+type Repository interface {
+	create(ctx context.Context, user User) (primitive.ObjectID, error)
+	getByID(ctx context.Context, id primitive.ObjectID) (User, error)
+	existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool
 }
 
 func New(db *mongo.Database) *Service {
 	repo := newRepository(db)
 	return &Service{
 		repo:      repo,
-		validator: newValidator(repo),
 	}
 }
 
@@ -36,7 +42,12 @@ func (s *Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if errs := s.validator.validate(r.Context(), user); len(errs) > 0 {
+	errs := user.validate()
+	if s.repo.existsByFirstNameAndLastName(r.Context(), user.FirstName, user.LastName) {
+		errs = append(errs, ErrorNameUnique)
+	}
+
+	if len(errs) > 0 {
 		log.Error().Msgf("error validating user: %s", strings.Join(errs, ", "))
 		response.SendValidationError(w, http.StatusBadRequest, response.ValidationError{Error: ResponseValidationFailed, Details: errs})
 		return

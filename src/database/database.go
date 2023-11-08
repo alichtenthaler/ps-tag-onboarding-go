@@ -10,11 +10,11 @@ import (
 )
 
 // Connect opens a connection with mongo and returns it
-func Connect(uri string) (*mongo.Database, error) {
+func Connect(config config.DBConfig) (*mongo.Database, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DBConnectionURI))
 	if err != nil {
 		return nil, err
 	}

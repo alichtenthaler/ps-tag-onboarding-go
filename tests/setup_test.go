@@ -28,9 +28,9 @@ func TestMain(m *testing.M) {
 
 func databaseSetup() error {
 	var err error
-	config.Load()
+	configs := config.Load()
 	fmt.Println("Connecting to the database...")
-	testDBConnection, err = createTestDBConnection()
+	testDBConnection, err = database.Connect(configs.DBConfig)
 	if err != nil {
 		fmt.Printf("Failed to connect database: %s\n", err)
 		return err
@@ -44,17 +44,4 @@ func databaseSetup() error {
 	}
 
 	return err
-}
-
-func createTestDBConnection() (*mongo.Database, error) {
-	db, err := database.Connect(fmt.Sprintf("mongodb://%s:%s@%s:%s",
-			config.DBUser,
-			config.DBPass,
-			os.Getenv("DB_HOST_LOCAL"),
-			config.DBPort,
-		))
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
 }

@@ -12,29 +12,23 @@ const (
 	UserCollection = "user"
 )
 
-type UserRepositoryI interface {
-	create(ctx context.Context, user User) (primitive.ObjectID, error)
-	getByID(ctx context.Context, id primitive.ObjectID) (User, error)
-	existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool
-}
-
-type UserRepository struct {
+type UserRepo struct {
 	db *mongo.Database
 }
 
-func newRepository(db *mongo.Database) *UserRepository {
-	return &UserRepository{
+func newRepository(db *mongo.Database) *UserRepo {
+	return &UserRepo{
 		db: db,
 	}
 }
 
-func (repo UserRepository) create(ctx context.Context, user User) (primitive.ObjectID, error) {
+func (repo UserRepo) create(ctx context.Context, user User) (primitive.ObjectID, error) {
 
 	res, err := repo.db.Collection(UserCollection).InsertOne(ctx, user)
 	return res.InsertedID.(primitive.ObjectID), err
 }
 
-func (repo UserRepository) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
+func (repo UserRepo) getByID(ctx context.Context, id primitive.ObjectID) (User, error) {
 
 	var user User
 
@@ -46,7 +40,7 @@ func (repo UserRepository) getByID(ctx context.Context, id primitive.ObjectID) (
 	return user, err
 }
 
-func (repo UserRepository) existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool {
+func (repo UserRepo) existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool {
 
 	if errors.Is(repo.db.Collection(UserCollection).FindOne(ctx, bson.M{"firstname": firstName, "lastname": lastName}).Err(), mongo.ErrNoDocuments) {
 		return false

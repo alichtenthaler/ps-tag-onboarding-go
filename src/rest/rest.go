@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/config"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -16,11 +15,11 @@ type Rest struct {
 }
 
 // New creates the http handler
-func New(userProcessor *user.Service) *Rest {
+func New(port int, userProcessor *user.Service) *Rest {
 
 	return &Rest{
 		&http.Server{
-			Addr:    fmt.Sprintf(":%d", config.Port),
+			Addr: fmt.Sprintf(":%d", port),
 			Handler: newRouter(userProcessor),
 		},
 	}
