@@ -25,7 +25,9 @@ func NewUserPersistenceAdapter(db *mongo.Database) *UserPersistenceAdapter {
 func (repo UserPersistenceAdapter) GetUserById(ctx context.Context, id string) (domain.User, error) {
 	var user domain.User
 
-	err := repo.db.Collection(UserCollection).FindOne(ctx, bson.M{"_id": id}).Decode(&user)
+	objectID, _ := primitive.ObjectIDFromHex(id)
+
+	err := repo.db.Collection(UserCollection).FindOne(ctx, bson.M{"_id": objectID}).Decode(&user)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return user, nil
 	}

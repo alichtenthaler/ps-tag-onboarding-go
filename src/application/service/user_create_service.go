@@ -19,12 +19,19 @@ func NewCreateUserService(userPort out.SaveUserPort) *CreateUserService {
 
 func (s *CreateUserService) CreateUser(ctx context.Context, user domain.User) (primitive.ObjectID, ValidationError, error) {
 
-	validationErr := s.validate(ctx, user)
-	if len(validationErr.Details) > 0 {
-		return primitive.NilObjectID, validationErr, nil
+	errs := s.validate(user)
+	if s.userPort.ExistsByFirstNameAndLastName(ctx, user.FirstName, user.LastName) {
+		errs = append(errs, domain.ErrorNameUnique)
+	}
+
+	if len(errs) > 0 {
+		return primitive.NilObjectID, ValidationError{Error: domain.ResponseValidationFailed, Details: errs}, nil
 	}
 
 	id, err := s.userPort.SaveUser(ctx, user)
+	if err != nil {
+		return primitive.NilObjectID, ValidationError{}, err
+	}
 
 	return id, ValidationError{}, err
 }

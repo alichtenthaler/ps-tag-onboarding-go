@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
 	"strings"
 )
@@ -11,7 +10,7 @@ type ValidationError struct {
 	Details []string `json:"details"`
 }
 
-func (s *CreateUserService) validate(ctx context.Context, user domain.User) ValidationError {
+func (s *CreateUserService) validate(user domain.User) []string {
 	var errs []string
 
 	if err := s.validateAge(user); err != "" {
@@ -22,15 +21,11 @@ func (s *CreateUserService) validate(ctx context.Context, user domain.User) Vali
 		errs = append(errs, err)
 	}
 
-	if err := s.validateName(ctx, user); err != "" {
+	if err := s.validateName(user); err != "" {
 		errs = append(errs, err)
 	}
 
-	if len(errs) > 0 {
-		return ValidationError{Error: domain.ResponseValidationFailed, Details: errs}
-	}
-
-	return ValidationError{}
+	return errs
 }
 
 func (s *CreateUserService) validateAge(user domain.User) string {
@@ -53,13 +48,9 @@ func (s *CreateUserService) validateEmail(user domain.User) string {
 	return ""
 }
 
-func (s *CreateUserService) validateName(ctx context.Context, user domain.User) string {
+func (s *CreateUserService) validateName(user domain.User) string {
 	if user.FirstName == "" || user.LastName == "" {
 		return domain.ErrorNameRequired
-	}
-
-	if s.userPort.ExistsByFirstNameAndLastName(ctx, user.FirstName, user.LastName) {
-		return domain.ErrorNameUnique
 	}
 
 	return ""

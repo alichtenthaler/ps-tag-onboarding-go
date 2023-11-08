@@ -31,13 +31,6 @@ func (h *GetUserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//objectID, err := primitive.ObjectIDFromHex(userID)
-	//if err != nil {
-	//	log.Error().Msgf("error converting user id to object id: %s", err.Error())
-	//	response.SendError(w, http.StatusNotFound, errors.New(domain.ResponseUserNotFound))
-	//	return
-	//}
-
 	user, err := h.uc.GetUser(r.Context(), userID)
 	if err != nil {
 		log.Error().Msgf("error getting user by id in the database: %s", err.Error())

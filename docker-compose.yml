@@ -10,7 +10,7 @@ services:
       - 8080:8080
 
   mongo:
-    image: mongo:3.6.17-xenial
+    image: mongo:7.0.2
     ports:
       - 27017:27017
     environment:

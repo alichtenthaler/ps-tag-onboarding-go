@@ -29,7 +29,7 @@ func (v MockUserValidator) validate(ctx context.Context, user domain.User) []str
 }
 
 type MockUserRepository struct {
-	UserRepositoryI
+	UserRepository
 	CreateFunc  func(ctx context.Context, user domain.User) (primitive.ObjectID, error)
 	GetByIDFunc func(ctx context.Context, id primitive.ObjectID) (domain.User, error)
 	ExistsByFirstNameAndLastNameFunc func(ctx context.Context, firstName, lastName string) bool
@@ -40,7 +40,7 @@ func (r MockUserRepository) create(ctx context.Context, user domain.User) (primi
 		return r.CreateFunc(ctx, user)
 	}
 
-	return r.UserRepositoryI.create(ctx, user)
+	return r.UserRepository.create(ctx, user)
 }
 
 func (r MockUserRepository) getByID(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
@@ -48,7 +48,7 @@ func (r MockUserRepository) getByID(ctx context.Context, id primitive.ObjectID) 
 		return r.GetByIDFunc(ctx, id)
 	}
 
-	return r.UserRepositoryI.getByID(ctx, id)
+	return r.UserRepository.getByID(ctx, id)
 }
 
 func (r MockUserRepository) existsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) bool {
@@ -56,7 +56,7 @@ func (r MockUserRepository) existsByFirstNameAndLastName(ctx context.Context, fi
 		return r.ExistsByFirstNameAndLastNameFunc(ctx, firstName, lastName)
 	}
 
-	return r.UserRepositoryI.existsByFirstNameAndLastName(ctx, firstName, lastName)
+	return r.UserRepository.existsByFirstNameAndLastName(ctx, firstName, lastName)
 }
 
 func TestCreateUserHandlerOK(t *testing.T) {

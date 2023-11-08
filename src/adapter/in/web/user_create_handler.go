@@ -33,7 +33,7 @@ func (h *CreateUserHandler) HandleCreteUser(w http.ResponseWriter, r *http.Reque
 	user.ID, validationErr, err = h.uc.CreateUser(r.Context(), user)
 	if len(validationErr.Details) > 0 {
 		log.Error().Msgf("error validating user: %s", strings.Join(validationErr.Details, ", "))
-		SendValidationError(w, http.StatusBadRequest, ValidationError{Error: domain.ResponseValidationFailed, Details: validationErr.Details})
+		SendValidationError(w, http.StatusBadRequest, ValidationError{Error: validationErr.Error, Details: validationErr.Details})
 		return
 	}
 	if err != nil {
