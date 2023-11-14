@@ -177,8 +177,8 @@ func (s *UserIntegrationTestSuite) TestUserGetExistingID() {
 
 	userService := user.New(s.db)
 	req := httptest.NewRequest(http.MethodGet, "/fake-path", nil)
-	res := httptest.NewRecorder()
 	req = mux.SetURLVars(req, map[string]string{"userId": userIdURLParam})
+	res := httptest.NewRecorder()
 	userService.FindUserById(res, req)
 
 	assert.Exactly(s.T(), http.StatusOK, res.Code)
@@ -197,8 +197,8 @@ func (s *UserIntegrationTestSuite) TestUserGetNotExistingID() {
 
 	userService := user.New(s.db)
 	req := httptest.NewRequest(http.MethodGet, "/fake-path", nil)
-	res := httptest.NewRecorder()
 	req = mux.SetURLVars(req, map[string]string{"userId": notExistingID})
+	res := httptest.NewRecorder()
 	userService.FindUserById(res, req)
 
 	var respError response.GenericError

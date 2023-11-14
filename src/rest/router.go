@@ -9,11 +9,12 @@ import (
 
 func newRouter(userProcessor *user.Service) *mux.Router {
 	router := mux.NewRouter()
+	router.Use(middleware.Logger)
 
 	// ENDPOINTS
 	// User
-	router.HandleFunc("/find/{userId}", middleware.Logger(userProcessor.FindUserById)).Methods(http.MethodGet)
-	router.HandleFunc("/save", middleware.Logger(userProcessor.CreateUser)).Methods(http.MethodPost)
+	router.HandleFunc("/find/{userId}", userProcessor.FindUserById).Methods(http.MethodGet)
+	router.HandleFunc("/save", userProcessor.CreateUser).Methods(http.MethodPost)
 
 	return router
 }

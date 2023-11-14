@@ -7,9 +7,9 @@ import (
 )
 
 // Logger logs every request received by the API
-func Logger(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func Logger(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Info().Msgf("%s %s %s", r.Method, r.RequestURI, r.Host)
-		next(w, r)
-	}
+		h.ServeHTTP(w, r)
+	})
 }
