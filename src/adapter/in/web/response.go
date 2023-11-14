@@ -2,15 +2,11 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
 )
-
-type ValidationError struct {
-	Error   string   `json:"error"`
-	Details []string `json:"details"`
-}
 
 type GenericError struct {
 	Error string `json:"error"`
@@ -33,10 +29,7 @@ func SendError(w http.ResponseWriter, statusCode int, err error) {
 	})
 }
 
-func SendValidationError(w http.ResponseWriter, statusCode int, err ValidationError) {
-	SendResponse(w, statusCode, ValidationError{
-		Error:   err.Error,
-		Details: err.Details,
-	})
+func SendValidationError(w http.ResponseWriter, statusCode int, err domain.ValidationError) {
+	SendResponse(w, statusCode, err)
 }
 

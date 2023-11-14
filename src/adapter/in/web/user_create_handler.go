@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/port/in"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/service"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"strings"
@@ -25,15 +24,15 @@ func (h *CreateUserHandler) HandleCreteUser(w http.ResponseWriter, r *http.Reque
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		log.Error().Msg(err.Error())
-		SendValidationError(w, http.StatusBadRequest, ValidationError{Error: domain.ResponseValidationFailed, Details: []string{err.Error()}})
+		SendValidationError(w, http.StatusBadRequest, domain.ValidationError{Err: domain.ResponseValidationFailed, Details: []string{err.Error()}})
 		return
 	}
 
-	var validationErr service.ValidationError
+	var validationErr *domain.ValidationError
 	user.ID, validationErr, err = h.uc.CreateUser(r.Context(), user)
-	if len(validationErr.Details) > 0 {
+	if validationErr != nil {
 		log.Error().Msgf("error validating user: %s", strings.Join(validationErr.Details, ", "))
-		SendValidationError(w, http.StatusBadRequest, ValidationError{Error: validationErr.Error, Details: validationErr.Details})
+		SendValidationError(w, http.StatusBadRequest, domain.ValidationError{Err: validationErr.Err, Details: validationErr.Details})
 		return
 	}
 	if err != nil {

@@ -17,22 +17,22 @@ func NewCreateUserService(userPort out.SaveUserPort) *CreateUserService {
 	}
 }
 
-func (s *CreateUserService) CreateUser(ctx context.Context, user domain.User) (primitive.ObjectID, ValidationError, error) {
+func (s *CreateUserService) CreateUser(ctx context.Context, user domain.User) (primitive.ObjectID, *domain.ValidationError, error) {
 
-	errs := s.validate(user)
+	errs := user.Validate()
 	if s.userPort.ExistsByFirstNameAndLastName(ctx, user.FirstName, user.LastName) {
 		errs = append(errs, domain.ErrorNameUnique)
 	}
 
 	if len(errs) > 0 {
-		return primitive.NilObjectID, ValidationError{Error: domain.ResponseValidationFailed, Details: errs}, nil
+		return primitive.NilObjectID, &domain.ValidationError{Err: domain.ResponseValidationFailed, Details: errs}, nil
 	}
 
 	id, err := s.userPort.SaveUser(ctx, user)
 	if err != nil {
-		return primitive.NilObjectID, ValidationError{}, err
+		return primitive.NilObjectID, nil, err
 	}
 
-	return id, ValidationError{}, err
+	return id, nil, err
 }
 

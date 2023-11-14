@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -18,8 +17,11 @@ type Configuration struct {
 }
 
 type DBConfig struct {
-	DBName          string
-	DBConnectionURI string
+	Name string
+	User string
+	Pass string
+	Host string
+	Port string
 }
 
 func Load() *Configuration {
@@ -27,7 +29,7 @@ func Load() *Configuration {
 	var err error
 
 	if err = godotenv.Load(); err != nil {
-		log.Fatal().Msgf("Error loading configs from .env file: %s", err.Error())
+		log.Fatal().Msgf("Err loading configs from .env file: %s", err.Error())
 	}
 
 	port, err := strconv.Atoi(os.Getenv("API_PORT"))
@@ -35,25 +37,9 @@ func Load() *Configuration {
 		port = 9000
 	}
 
-	dbName := os.Getenv("DB_NAME")
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	if dbName == "" || dbUser == "" || dbPass == "" || dbHost == "" || dbPort == "" {
-		log.Fatal().Msg("Error loading configs from .env file: one or more DB configs are missing")
-	}
-
-	stringDBConnection := fmt.Sprintf("mongodb://%s:%s@%s:%s",
-		dbUser,
-		dbPass,
-		dbHost,
-		dbPort,
-	)
-
 	logLevel, err := zerolog.ParseLevel(os.Getenv("LOG_LEVEL"))
 	if err != nil {
-		log.Error().Msgf("Error parsing log level: %s. Setting it to InfoLevel", err.Error())
+		log.Error().Msgf("Err parsing log level: %s. Setting it to InfoLevel", err.Error())
 		logLevel = zerolog.InfoLevel
 	}
 
@@ -63,8 +49,11 @@ func Load() *Configuration {
 		Port:        port,
 		Environment: os.Getenv("ENVIRONMENT"),
 		DBConfig: DBConfig{
-			DBName:          dbName,
-			DBConnectionURI: stringDBConnection,
+			Name: os.Getenv("DB_NAME"),
+			User: os.Getenv("DB_USER"),
+			Pass: os.Getenv("DB_PASS"),
+			Host: os.Getenv("DB_HOST"),
+			Port: os.Getenv("DB_PORT"),
 		},
 		LogFormat: os.Getenv("LOG_FORMAT"),
 		LogLevel:  logLevel,
