@@ -9,27 +9,24 @@ import (
 	"net/http"
 )
 
+// GetUserHandler is an HTTP handler for getting a user.
 type GetUserHandler struct {
 	uc in.GetUserUseCase
 }
 
+// NewGetUserHandler creates a new GetUserHandler.
 func NewGetUserHandler(uc in.GetUserUseCase) *GetUserHandler {
 	return &GetUserHandler{
 		uc: uc,
 	}
 }
 
+// HandleGetUser handles the HTTP request for getting a user.
 func (h *GetUserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	var err error
 	params := mux.Vars(r)
 
 	userID := params["userId"]
-	if userID == "" {
-		err = errors.New("no user id provided")
-		log.Error().Msg(err.Error())
-		SendError(w, http.StatusBadRequest, err)
-		return
-	}
 
 	user, err := h.uc.GetUser(r.Context(), userID)
 	if err != nil {

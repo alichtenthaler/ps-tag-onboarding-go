@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"strings"
+	"regexp"
 )
 
 type ValidationError struct {
@@ -44,7 +44,8 @@ func (u *User) validateEmail() string {
 		return ErrorEmailRequired
 	}
 
-	if !strings.Contains(u.Email, "@") {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	if !emailRegex.MatchString(u.Email) {
 		return ErrorEmailFormat
 	}
 

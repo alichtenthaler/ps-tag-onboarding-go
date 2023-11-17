@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+// Configuration represents the application configuration
 type Configuration struct {
 	Port        int
 	Environment string
@@ -16,14 +17,15 @@ type Configuration struct {
 	LogLevel    zerolog.Level
 }
 
+// DBConfig represents the database configuration
 type DBConfig struct {
 	Name string
 	User string
 	Pass string
 	Host string
-	Port string
 }
 
+// Load loads the application configuration from the environment variables and returns it
 func Load() *Configuration {
 	log.Info().Msg("Loading configs...")
 	var err error
@@ -53,7 +55,6 @@ func Load() *Configuration {
 			User: os.Getenv("DB_USER"),
 			Pass: os.Getenv("DB_PASS"),
 			Host: os.Getenv("DB_HOST"),
-			Port: os.Getenv("DB_PORT"),
 		},
 		LogFormat: os.Getenv("LOG_FORMAT"),
 		LogLevel:  logLevel,

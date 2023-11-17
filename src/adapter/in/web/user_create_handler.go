@@ -9,16 +9,19 @@ import (
 	"strings"
 )
 
+// CreateUserHandler is an HTTP handler for creating a user.
 type CreateUserHandler struct {
 	uc in.CreateUserUseCase
 }
 
+// NewCreateUserHandler creates a new CreateUserHandler.
 func NewCreateUserHandler(uc in.CreateUserUseCase) *CreateUserHandler {
 	return &CreateUserHandler{
 		uc: uc,
 	}
 }
 
+// HandleCreteUser handles the HTTP request for creating a user.
 func (h *CreateUserHandler) HandleCreteUser(w http.ResponseWriter, r *http.Request) {
 	var user domain.User
 	err := json.NewDecoder(r.Body).Decode(&user)
