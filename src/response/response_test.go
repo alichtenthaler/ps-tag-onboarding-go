@@ -2,7 +2,7 @@ package response
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -65,12 +65,12 @@ func TestSendResponseWithNoData(t *testing.T) {
 func TestSendError(t *testing.T) {
 	response := httptest.NewRecorder()
 	status := http.StatusInternalServerError
-	err := errors.New("server error")
+	errToSend := errs.Error{Message: "server error"}
 
-	SendError(response, status, err)
+	SendError(response, status, errToSend)
 
 	genErr := GenericError{
-		Error: err.Error(),
+		Error: errToSend.Error(),
 	}
 
 	errBytes, err := json.Marshal(genErr)
@@ -87,7 +87,7 @@ func TestSendValidationError(t *testing.T) {
 
 	response := httptest.NewRecorder()
 	status := http.StatusBadRequest
-	validationErr := ValidationError{
+	validationErr := errs.ValidationError{
 		Error:   "validation error",
 		Details: []string{"error 1", "error 2"},
 	}

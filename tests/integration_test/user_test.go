@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
 	"github.com/gorilla/mux"
@@ -54,6 +55,13 @@ func (s *UserIntegrationTestSuite) TestUserCreationOK() {
 		log.Fatal(s.T(), err, res.Body.String())
 	}
 
+	var userSaved user.User
+	err = s.db.Collection(user.UserCollection).FindOne(context.Background(), primitive.M{"_id": respUser.ID}).Decode(&userSaved)
+	if err != nil {
+		s.T().Errorf("error getting user from the database: %s", err.Error())
+	}
+
+	assert.Exactly(s.T(), respUser, userSaved)
 	assert.Exactly(s.T(), u.FirstName, respUser.FirstName)
 	assert.Exactly(s.T(), u.LastName, respUser.LastName)
 	assert.Exactly(s.T(), u.Email, respUser.Email)
@@ -76,7 +84,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 	testCases := []struct {
 		name            string
 		user            user.User
-		validationError response.ValidationError
+		validationError errs.ValidationError
 	}{
 		{
 			name: "Missing user first name",
@@ -85,7 +93,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:    "s@s.com",
 				Age:      22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorNameRequired}},
+			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameRequired.Error()}},
 		},
 		{
 			name: "Missing user last name",
@@ -94,7 +102,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "s@s.com",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorNameRequired}},
+			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameRequired.Error()}},
 		},
 		{
 			name: "User minimum age not reached",
@@ -104,7 +112,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "s@s.com",
 				Age:       12,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorAgeMinimum}},
+			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorAgeMinimum.Error()}},
 		},
 		{
 			name: "Missing user email",
@@ -113,7 +121,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				LastName:  "peterson",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorEmailRequired}},
+			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorEmailRequired.Error()}},
 		},
 		{
 			name: "User wrong email format",
@@ -123,7 +131,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "ss.com",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorEmailFormat}},
+			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorEmailFormat.Error()}},
 		},
 		{
 			name: "First and lastname are not unique",
@@ -133,7 +141,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "s@s.com",
 				Age:       22,
 			},
-			validationError: response.ValidationError{Error: user.ResponseValidationFailed, Details: []string{user.ErrorNameUnique}},
+			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameUnique.Error()}},
 		},
 	}
 
@@ -152,7 +160,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 
 			assert.Exactly(s.T(), http.StatusBadRequest, res.Code)
 
-			var errResp response.ValidationError
+			var errResp errs.ValidationError
 			err = json.Unmarshal(res.Body.Bytes(), &errResp)
 			if err != nil {
 				log.Fatal(s.T(), err, res.Body.String())
@@ -208,7 +216,7 @@ func (s *UserIntegrationTestSuite) TestUserGetNotExistingID() {
 	}
 
 	assert.Exactly(s.T(), http.StatusNotFound, res.Code)
-	assert.Equal(s.T(), user.ResponseUserNotFound, respError.Error)
+	assert.Equal(s.T(), user.ResponseUserNotFound.Error(), respError.Error)
 }
 
 func setUpTestInsertUser(ctx context.Context, s *UserIntegrationTestSuite, existingUser user.User) primitive.ObjectID {

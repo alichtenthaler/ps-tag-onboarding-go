@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	// UserCollection is the name of the collection in mongo database
 	UserCollection = "user"
 )
 

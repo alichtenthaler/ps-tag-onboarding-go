@@ -15,12 +15,12 @@ type Rest struct {
 }
 
 // New creates the http handler
-func New(port int, userProcessor *user.Service) *Rest {
+func New(port int, userService *user.Service) *Rest {
 
 	return &Rest{
 		&http.Server{
 			Addr: fmt.Sprintf(":%d", port),
-			Handler: newRouter(userProcessor),
+			Handler: newRouter(userService),
 		},
 	}
 }

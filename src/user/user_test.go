@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -112,16 +113,16 @@ func TestCreateUserHandlerFailValidation(t *testing.T) {
 	res := httptest.NewRecorder()
 	userService.CreateUser(res, req)
 
-	var responseError response.ValidationError
+	var responseError errs.ValidationError
 	err = json.NewDecoder(res.Body).Decode(&responseError)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, http.StatusBadRequest, res.Code)
-	assert.Equal(t, ErrorEmailRequired, responseError.Details[0])
-	assert.Equal(t, ErrorNameUnique, responseError.Details[1])
-	assert.Equal(t, ResponseValidationFailed, responseError.Error)
+	assert.Equal(t, ErrorEmailRequired.Error(), responseError.Details[0])
+	assert.Equal(t, ErrorNameUnique.Error(), responseError.Details[1])
+	assert.Equal(t, ResponseValidationFailed.Error(), responseError.Error)
 }
 
 func TestUserValidate(t *testing.T) {
@@ -139,7 +140,7 @@ func TestUserValidate(t *testing.T) {
 				Email:    "a@a.com",
 				Age:      22,
 			},
-			validationError: []string{ErrorNameRequired},
+			validationError: []string{ErrorNameRequired.Error()},
 		},
 		{
 			name: "Missing user last name",
@@ -148,7 +149,7 @@ func TestUserValidate(t *testing.T) {
 				Email:     "a@a.com",
 				Age:       22,
 			},
-			validationError: []string{ErrorNameRequired},
+			validationError: []string{ErrorNameRequired.Error()},
 		},
 		{
 			name: "Missing user email",
@@ -157,7 +158,7 @@ func TestUserValidate(t *testing.T) {
 				LastName:  "ann",
 				Age:       22,
 			},
-			validationError: []string{ErrorEmailRequired},
+			validationError: []string{ErrorEmailRequired.Error()},
 		},
 		{
 			name: "User email not in a proper format",
@@ -167,7 +168,7 @@ func TestUserValidate(t *testing.T) {
 				Email:     "aa.com",
 				Age:       18,
 			},
-			validationError: []string{ErrorEmailFormat},
+			validationError: []string{ErrorEmailFormat.Error()},
 		},
 		{
 			name: "Minimum age required",
@@ -177,7 +178,7 @@ func TestUserValidate(t *testing.T) {
 				Email:     "a@a.com",
 				Age:       17,
 			},
-			validationError: []string{ErrorAgeMinimum},
+			validationError: []string{ErrorAgeMinimum.Error()},
 		},
 		{
 			name: "User fails validation on multiple fields",
@@ -186,14 +187,14 @@ func TestUserValidate(t *testing.T) {
 				Email:    "aa.com",
 				Age:      17,
 			},
-			validationError: []string{ErrorAgeMinimum, ErrorEmailFormat, ErrorNameRequired},
+			validationError: []string{ErrorAgeMinimum.Error(), ErrorEmailFormat.Error(), ErrorNameRequired.Error()},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(tt *testing.T) {
-			errs := tc.user.validate()
-			assert.Equal(tt, tc.validationError, errs)
+			validationErr := tc.user.validate()
+			assert.Equal(tt, errs.ValidationError{Error: ResponseValidationFailed.Error(), Details: tc.validationError}, validationErr)
 		})
 	}
 }
@@ -257,5 +258,5 @@ func TestFindUserByIDHandlerNotFound(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusNotFound, res.Code)
-	assert.Equal(t, ResponseUserNotFound, respError.Error)
+	assert.Equal(t, ResponseUserNotFound.Error(), respError.Error)
 }

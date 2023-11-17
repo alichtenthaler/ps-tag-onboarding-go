@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/config"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -31,9 +32,11 @@ func Connect(config config.DBConfig) (*mongo.Database, error) {
 func createClientOptions(config config.DBConfig) *options.ClientOptions {
 	clientOptions := options.Client()
 
-	if config.Host != "" {
-		clientOptions.SetHosts([]string{config.Host})
+	if config.Host == "" {
+		log.Fatal().Msg("No host provided for database connection")
 	}
+
+	clientOptions.SetHosts([]string{config.Host})
 
 	if config.User != "" && config.Pass != "" {
 		clientOptions.SetAuth(options.Credential{
