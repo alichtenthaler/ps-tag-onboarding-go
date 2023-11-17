@@ -3,13 +3,11 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-	"strings"
-
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -42,7 +40,7 @@ func (s *Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		log.Error().Msg(err.Error())
-		response.SendValidationError(w, http.StatusBadRequest, errs.ValidationError{Error: ResponseValidationFailed.Message, Details: []string{err.Error()}})
+		response.SendValidationError(w, http.StatusBadRequest, errs.ValidationError{Err: ResponseValidationFailed.Message, Details: []string{err.Error()}})
 		return
 	}
 
@@ -52,7 +50,7 @@ func (s *Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(validationError.Details) > 0 {
-		log.Error().Msgf("error validating user: %v", strings.Join(validationError.Details, ", "))
+		log.Error().Msg(validationError.Error())
 		response.SendValidationError(w, http.StatusBadRequest, validationError)
 		return
 	}

@@ -93,7 +93,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:    "s@s.com",
 				Age:      22,
 			},
-			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameRequired.Error()}},
+			validationError: errs.ValidationError{Err: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameRequired.Error()}},
 		},
 		{
 			name: "Missing user last name",
@@ -102,7 +102,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "s@s.com",
 				Age:       22,
 			},
-			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameRequired.Error()}},
+			validationError: errs.ValidationError{Err: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameRequired.Error()}},
 		},
 		{
 			name: "User minimum age not reached",
@@ -112,7 +112,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "s@s.com",
 				Age:       12,
 			},
-			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorAgeMinimum.Error()}},
+			validationError: errs.ValidationError{Err: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorAgeMinimum.Error()}},
 		},
 		{
 			name: "Missing user email",
@@ -121,7 +121,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				LastName:  "peterson",
 				Age:       22,
 			},
-			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorEmailRequired.Error()}},
+			validationError: errs.ValidationError{Err: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorEmailRequired.Error()}},
 		},
 		{
 			name: "User wrong email format",
@@ -131,7 +131,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "ss.com",
 				Age:       22,
 			},
-			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorEmailFormat.Error()}},
+			validationError: errs.ValidationError{Err: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorEmailFormat.Error()}},
 		},
 		{
 			name: "First and lastname are not unique",
@@ -141,7 +141,7 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				Email:     "s@s.com",
 				Age:       22,
 			},
-			validationError: errs.ValidationError{Error: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameUnique.Error()}},
+			validationError: errs.ValidationError{Err: user.ResponseValidationFailed.Error(), Details: []string{user.ErrorNameUnique.Error()}},
 		},
 	}
 

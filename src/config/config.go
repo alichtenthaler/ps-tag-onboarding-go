@@ -31,7 +31,7 @@ func Load() *Configuration {
 	var err error
 
 	if err = godotenv.Load(); err != nil {
-		log.Fatal().Msgf("Error loading configs from .env file: %s", err.Error())
+		log.Fatal().Msgf("Err loading configs from .env file: %s", err.Error())
 	}
 
 	port, err := strconv.Atoi(os.Getenv("API_PORT"))
@@ -41,7 +41,7 @@ func Load() *Configuration {
 
 	logLevel, err := zerolog.ParseLevel(os.Getenv("LOG_LEVEL"))
 	if err != nil {
-		log.Error().Msgf("Error parsing log level: %s. Setting it to InfoLevel", err.Error())
+		log.Error().Msgf("Err parsing log level: %s. Setting it to InfoLevel", err.Error())
 		logLevel = zerolog.InfoLevel
 	}
 

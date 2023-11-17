@@ -9,7 +9,7 @@ import (
 )
 
 //type ValidationError struct {
-//	Error   string   `json:"error"`
+//	Err   string   `json:"error"`
 //	Details []string `json:"details"`
 //}
 
@@ -28,7 +28,7 @@ func SendResponse(w http.ResponseWriter, statusCode int, data any) {
 	if data != nil {
 		if err := json.NewEncoder(w).Encode(data); err != nil {
 			log.Error().Msgf("error encoding response data to the client: %s", err.Error())
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Err", http.StatusInternalServerError)
 		}
 	}
 }
@@ -47,7 +47,7 @@ func SendError(w http.ResponseWriter, statusCode int, err errs.Error) {
 // See: https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
 func SendValidationError(w http.ResponseWriter, statusCode int, err errs.ValidationError) {
 	SendResponse(w, statusCode, errs.ValidationError{
-		Error:   err.Error,
+		Err: err.Err,
 		Details: err.Details,
 	})
 }

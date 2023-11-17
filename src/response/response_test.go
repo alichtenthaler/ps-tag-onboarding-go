@@ -88,7 +88,7 @@ func TestSendValidationError(t *testing.T) {
 	response := httptest.NewRecorder()
 	status := http.StatusBadRequest
 	validationErr := errs.ValidationError{
-		Error:   "validation error",
+		Err: "validation error",
 		Details: []string{"error 1", "error 2"},
 	}
 

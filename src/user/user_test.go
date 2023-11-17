@@ -194,7 +194,7 @@ func TestUserValidate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(tt *testing.T) {
 			validationErr := tc.user.validate()
-			assert.Equal(tt, errs.ValidationError{Error: ResponseValidationFailed.Error(), Details: tc.validationError}, validationErr)
+			assert.Equal(tt, errs.ValidationError{Err: ResponseValidationFailed.Error(), Details: tc.validationError}, validationErr)
 		})
 	}
 }
