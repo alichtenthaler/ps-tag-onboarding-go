@@ -122,7 +122,7 @@ func TestCreateUserHandlerFailValidation(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, res.Code)
 	assert.Equal(t, ErrorEmailRequired.Error(), responseError.Details[0])
 	assert.Equal(t, ErrorNameUnique.Error(), responseError.Details[1])
-	assert.Equal(t, ResponseValidationFailed.Error(), responseError.Error)
+	assert.Equal(t, ResponseValidationFailed.Error(), responseError.Err)
 }
 
 func TestUserValidate(t *testing.T) {
