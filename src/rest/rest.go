@@ -28,9 +28,9 @@ func New(port int, userService *user.Service) *Rest {
 // Start starts the http server
 func (rest *Rest) Start() {
 
-	log.Info().Msgf("Server listening on %s\n", rest.server.Addr)
+	log.Info().Msgf("Server listening on %s", rest.server.Addr)
 	if err := rest.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatal().Msgf("error starting server: %s\n", err)
+		log.Fatal().Msgf("error starting server: %s", err)
 	}
 }
 
