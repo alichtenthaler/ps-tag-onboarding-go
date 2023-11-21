@@ -20,11 +20,7 @@ func (u *User) Validate() errs.ValidationError {
 		errDetails = append(errDetails, err)
 	}
 
-	if len(errDetails) > 0 {
-		return errs.ValidationError{Err: errs.ResponseValidationFailed.Message, Details: errDetails}
-	}
-
-	return errs.ValidationError{}
+	return errs.ValidationError{Err: errs.ResponseValidationFailed.Message, Details: errDetails}
 }
 
 func (u *User) validateAge() string {

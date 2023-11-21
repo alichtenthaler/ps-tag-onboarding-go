@@ -23,22 +23,20 @@ func NewCreateUserService(userPort out.SaveUserPort) *CreateUserService {
 // CreateUser creates a user in the database
 func (s *CreateUserService) CreateUser(ctx context.Context, user domain.User) (primitive.ObjectID, errs.ValidationError, error) {
 
-	var validationErrs errs.ValidationError
-
-	validationErrs = user.Validate()
+	validationErrs := user.Validate()
 	if s.userPort.ExistsByFirstNameAndLastName(ctx, user.FirstName, user.LastName) {
 		validationErrs.Details = append(validationErrs.Details, errs.ErrorNameUnique.Message)
 	}
 
 	if len(validationErrs.Details) > 0 {
-		return primitive.NilObjectID, errs.ValidationError{Err: errs.ResponseValidationFailed.Message, Details: validationErrs.Details}, nil
+		return primitive.NilObjectID, validationErrs, nil
 	}
 
 	id, err := s.userPort.SaveUser(ctx, user)
 	if err != nil {
-		return primitive.NilObjectID, validationErrs, err
+		return primitive.NilObjectID, errs.ValidationError{}, err
 	}
 
-	return id, validationErrs, err
+	return id, errs.ValidationError{}, err
 }
 
