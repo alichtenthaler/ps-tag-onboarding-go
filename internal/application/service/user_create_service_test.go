@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/port/out"
+	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/port/out"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"

@@ -2,7 +2,7 @@ package out
 
 import (
 	"context"
-	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
+	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

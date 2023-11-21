@@ -2,8 +2,8 @@ package web
 
 import (
 	"encoding/json"
-	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/port/in"
+	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/port/in"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"strings"

@@ -3,7 +3,7 @@ package web
 import (
 	"encoding/json"
 	"errors"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"

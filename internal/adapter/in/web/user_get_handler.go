@@ -2,8 +2,8 @@ package web
 
 import (
 	"errors"
-	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/port/in"
+	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/port/in"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -36,7 +36,7 @@ func (h *GetUserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.ID.IsZero() {
-		log.Warn().Msgf("No user found with id '%s'", userID)
+		log.Info().Msgf("no user found with id '%s'", userID)
 		SendError(w, http.StatusNotFound, errors.New(domain.ResponseUserNotFound))
 		return
 	}

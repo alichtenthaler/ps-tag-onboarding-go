@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/config"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/config"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

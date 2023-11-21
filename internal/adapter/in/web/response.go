@@ -2,7 +2,7 @@ package web
 
 import (
 	"encoding/json"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
