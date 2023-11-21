@@ -2,8 +2,7 @@ package web
 
 import (
 	"encoding/json"
-	"errors"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +30,7 @@ func TestSendResponseWithData(t *testing.T) {
 		},
 		{
 			name:       "Send response status 400",
-			data:       GenericError{Error: "error 400"},
+			data: errs.GenericError{Err: "error 400"},
 			statusCode: 400,
 		},
 	}
@@ -66,15 +65,11 @@ func TestSendResponseWithNoData(t *testing.T) {
 func TestSendError(t *testing.T) {
 	response := httptest.NewRecorder()
 	status := http.StatusInternalServerError
-	err := errors.New("server error")
+	genericErr := errs.GenericError{Err: "server error"}
 
-	SendError(response, status, err)
+	SendGenericError(response, status, genericErr)
 
-	genErr := GenericError{
-		Error: err.Error(),
-	}
-
-	errBytes, err := json.Marshal(genErr)
+	errBytes, err := json.Marshal(genericErr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +83,7 @@ func TestSendValidationError(t *testing.T) {
 
 	response := httptest.NewRecorder()
 	status := http.StatusBadRequest
-	validationErr := domain.ValidationError{
+	validationErr := errs.ValidationError{
 		Err:     "validation error",
 		Details: []string{"error 1", "error 2"},
 	}

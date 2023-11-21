@@ -2,15 +2,12 @@ package web
 
 import (
 	"encoding/json"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
 )
 
-type GenericError struct {
-	Error string `json:"error"`
-}
 
 // SendResponse sends an HTTP response to the client. The data is encoded as JSON.
 // The provided status code must be a valid HTTP 1xx-5xx status code.
@@ -26,19 +23,17 @@ func SendResponse(w http.ResponseWriter, statusCode int, data interface{}) {
 	}
 }
 
-// SendError sends an HTTP error response to the client. The error is a GenericError.
+// SendGenericError sends an HTTP error response to the client. The error is a GenericError.
 // The provided status code must be a valid HTTP 1xx-5xx status code.
 // See: https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-func SendError(w http.ResponseWriter, statusCode int, err error) {
-	SendResponse(w, statusCode, GenericError{
-		Error: err.Error(),
-	})
+func SendGenericError(w http.ResponseWriter, statusCode int, err errs.GenericError) {
+	SendResponse(w, statusCode, err)
 }
 
 // SendValidationError sends an HTTP error response to the client. The error is a ValidationError.
 // The provided status code must be a valid HTTP 1xx-5xx status code.
 // See: https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-func SendValidationError(w http.ResponseWriter, statusCode int, err domain.ValidationError) {
+func SendValidationError(w http.ResponseWriter, statusCode int, err errs.ValidationError) {
 	SendResponse(w, statusCode, err)
 }
 

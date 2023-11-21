@@ -4,6 +4,7 @@ import (
 	"context"
 	domain "github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/domain/user"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/application/port/out"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
@@ -52,7 +53,7 @@ func TestCreateUserServiceOK(t *testing.T) {
 	userService := NewCreateUserService(saveUserPort)
 	_, validationErr, err := userService.CreateUser(context.Background(), user)
 
-	assert.Nil(t, validationErr)
+	assert.Equal(t, errs.ValidationError{}, validationErr)
 	assert.Nil(t, err)
 }
 
@@ -82,7 +83,7 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 	testCases := []struct {
 		name            string
 		user            domain.User
-		validationError []string
+		errorDetails    []string
 		saveUserPort    out.SaveUserPort
 	}{
 		{
@@ -92,8 +93,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				Email:    "a@a.com",
 				Age:      22,
 			},
-			validationError: []string{domain.ErrorNameRequired},
-			saveUserPort:    mockSaveUserPortWithoutNameConflict,
+			errorDetails: []string{errs.ErrorNameRequired.Message},
+			saveUserPort: mockSaveUserPortWithoutNameConflict,
 		},
 		{
 			name: "Missing user last name",
@@ -102,8 +103,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				Email:     "a@a.com",
 				Age:       22,
 			},
-			validationError: []string{domain.ErrorNameRequired},
-			saveUserPort:    mockSaveUserPortWithoutNameConflict,
+			errorDetails: []string{errs.ErrorNameRequired.Message},
+			saveUserPort: mockSaveUserPortWithoutNameConflict,
 		},
 		{
 			name: "User with the same first and last name already exists",
@@ -113,8 +114,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				Email:     "a@a.com",
 				Age:       22,
 			},
-			validationError: []string{domain.ErrorNameUnique},
-			saveUserPort:    mockSaveUserPortWithNameConflict,
+			errorDetails: []string{errs.ErrorNameUnique.Message},
+			saveUserPort: mockSaveUserPortWithNameConflict,
 		},
 		{
 			name: "Missing user email",
@@ -123,8 +124,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				LastName:  "ann",
 				Age:       22,
 			},
-			validationError: []string{domain.ErrorEmailRequired},
-			saveUserPort:    mockSaveUserPortWithoutNameConflict,
+			errorDetails: []string{errs.ErrorEmailRequired.Message},
+			saveUserPort: mockSaveUserPortWithoutNameConflict,
 		},
 		{
 			name: "User email not in a proper format",
@@ -134,8 +135,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				Email:     "aa.com",
 				Age:       18,
 			},
-			validationError: []string{domain.ErrorEmailFormat},
-			saveUserPort:    mockSaveUserPortWithoutNameConflict,
+			errorDetails: []string{errs.ErrorEmailFormat.Message},
+			saveUserPort: mockSaveUserPortWithoutNameConflict,
 		},
 		{
 			name: "Minimum age required",
@@ -145,8 +146,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				Email:     "a@a.com",
 				Age:       17,
 			},
-			validationError: []string{domain.ErrorAgeMinimum},
-			saveUserPort:    mockSaveUserPortWithoutNameConflict,
+			errorDetails: []string{errs.ErrorAgeMinimum.Message},
+			saveUserPort: mockSaveUserPortWithoutNameConflict,
 		},
 		{
 			name: "User fails validation on multiple fields",
@@ -155,8 +156,8 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 				Email:    "aa.com",
 				Age:      17,
 			},
-			validationError: []string{domain.ErrorAgeMinimum, domain.ErrorEmailFormat, domain.ErrorNameRequired},
-			saveUserPort:    mockSaveUserPortWithoutNameConflict,
+			errorDetails: []string{errs.ErrorAgeMinimum.Message, errs.ErrorEmailFormat.Message, errs.ErrorNameRequired.Message},
+			saveUserPort: mockSaveUserPortWithoutNameConflict,
 		},
 	}
 
@@ -167,7 +168,7 @@ func TestCreateUserServiceFailValidation(t *testing.T) {
 			id, validationErr, err := userService.CreateUser(context.Background(), tc.user)
 
 			assert.Equal(tt, primitive.NilObjectID, id)
-			assert.Equal(t,  domain.ValidationError{Err:domain.ResponseValidationFailed, Details:tc.validationError}, *validationErr)
+			assert.Equal(t, validationErr, errs.ValidationError{Err: errs.ResponseValidationFailed.Message, Details: tc.errorDetails})
 			assert.Nil(tt, err)
 		})
 	}
