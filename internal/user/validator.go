@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"regexp"
 )
 

@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/config"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/database"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/rest"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/config"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/database"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/rest"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/user"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"io"

@@ -1,6 +1,6 @@
 package user
 
-import "github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
+import "github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 
 var (
 	ErrorAgeMinimum          = errs.Error{Message: "user does not meet minimum age requirement"}

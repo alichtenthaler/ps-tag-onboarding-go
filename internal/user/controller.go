@@ -3,8 +3,8 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/response"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/response"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
@@ -88,7 +88,7 @@ func (s *Service) FindUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.ID.IsZero() {
-		log.Info().Msgf("No user found with id '%s'", userID)
+		log.Info().Msgf("no user found with id '%s'", userID)
 		response.SendError(w, http.StatusNotFound, ResponseUserNotFound)
 		return
 	}

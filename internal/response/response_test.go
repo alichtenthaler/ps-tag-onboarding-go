@@ -2,7 +2,7 @@ package response
 
 import (
 	"encoding/json"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"

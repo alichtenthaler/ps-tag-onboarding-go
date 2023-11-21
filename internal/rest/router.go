@@ -1,8 +1,8 @@
 package rest
 
 import (
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/middleware"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/middleware"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/user"
 	"github.com/gorilla/mux"
 	"net/http"
 )

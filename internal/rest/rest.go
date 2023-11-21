@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/user"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/user"
 	"github.com/rs/zerolog/log"
 	"net/http"
 )

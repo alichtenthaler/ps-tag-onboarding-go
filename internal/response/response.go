@@ -2,16 +2,12 @@ package response
 
 import (
 	"encoding/json"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/src/errs"
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
 )
 
-//type ValidationError struct {
-//	Err   string   `json:"error"`
-//	Details []string `json:"details"`
-//}
 
 // GenericError represents an error to be return to the client
 type GenericError struct {
