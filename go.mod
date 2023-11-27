@@ -3,7 +3,7 @@ module github.com/alichtenthaler/ps-tag-onboarding-go/api
 go 1.21
 
 require (
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
