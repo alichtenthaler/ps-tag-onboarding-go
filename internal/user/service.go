@@ -3,11 +3,12 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/response"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"

@@ -1,18 +1,15 @@
 package main
 
 import (
-	"context"
+	"io"
+	"os"
+
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/config"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/database"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/rest"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/user"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"io"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func main() {
@@ -42,30 +39,6 @@ func main() {
 	userService := user.New(dbConnection)
 
 	log.Info().Msg("Starting HTTP server")
-	server := startRestServer(configs.Port, userService)
 
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	<-done
-	log.Info().Msg("Shutting down HTTP server")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal().Msg("Failed to shutdown HTTP server")
-	}
-
-	log.Info().Msg("Server was shutdown properly")
-}
-
-func startRestServer(port int, userProcessor *user.Service) *rest.Rest {
-	restServer := rest.New(
-		port,
-		userProcessor,
-	)
-
-	go restServer.Start()
-	return restServer
+	rest.New(configs.Port, userService).Start()
 }
