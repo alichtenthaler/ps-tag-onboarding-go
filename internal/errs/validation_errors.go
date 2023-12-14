@@ -7,7 +7,7 @@ import (
 
 // ValidationError represents a validation error
 type ValidationError struct {
-	Err string `json:"error"`
+	Err     string   `json:"error"`
 	Details []string `json:"details"`
 }
 

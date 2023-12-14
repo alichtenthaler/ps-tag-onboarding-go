@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/errs"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/response"
+
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/rest"
 	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/user"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 type UserIntegrationTestSuite struct {
@@ -42,10 +45,12 @@ func (s *UserIntegrationTestSuite) TestUserCreationOK() {
 		log.Fatal(s.T(), err, userByte)
 	}
 
-	userService := user.New(s.db)
+	createUserService := user.NewCreateUserService(s.db)
+	createUserHandler := rest.NewCreateUserHandler(createUserService)
+
 	req := httptest.NewRequest(http.MethodPost, "/fake-path", bytes.NewBuffer(userByte))
 	res := httptest.NewRecorder()
-	userService.CreateUser(res, req)
+	createUserHandler.CreateUser(res, req)
 
 	assert.Exactly(s.T(), http.StatusCreated, res.Code)
 
@@ -153,10 +158,11 @@ func (s *UserIntegrationTestSuite) TestUserCreationValidationFails() {
 				log.Fatal(s.T(), err, userByte)
 			}
 
-			userService := user.New(s.db)
+			createUserService := user.NewCreateUserService(s.db)
+			createUserHandler := rest.NewCreateUserHandler(createUserService)
 			req := httptest.NewRequest(http.MethodPost, "/fake-path", bytes.NewBuffer(userByte))
 			res := httptest.NewRecorder()
-			userService.CreateUser(res, req)
+			createUserHandler.CreateUser(res, req)
 
 			assert.Exactly(s.T(), http.StatusBadRequest, res.Code)
 
@@ -183,11 +189,12 @@ func (s *UserIntegrationTestSuite) TestUserGetExistingID() {
 
 	userIdURLParam := existingID.Hex()
 
-	userService := user.New(s.db)
+	findUserService := user.NewFindUserService(s.db)
+	findUserHandler := rest.NewFindUserHandler(findUserService)
 	req := httptest.NewRequest(http.MethodGet, "/fake-path", nil)
 	req = mux.SetURLVars(req, map[string]string{"userId": userIdURLParam})
 	res := httptest.NewRecorder()
-	userService.FindUserById(res, req)
+	findUserHandler.FindUser(res, req)
 
 	assert.Exactly(s.T(), http.StatusOK, res.Code)
 
@@ -203,13 +210,14 @@ func (s *UserIntegrationTestSuite) TestUserGetExistingID() {
 func (s *UserIntegrationTestSuite) TestUserGetNotExistingID() {
 	notExistingID := "a"
 
-	userService := user.New(s.db)
+	findUserService := user.NewFindUserService(s.db)
+	findUserHandler := rest.NewFindUserHandler(findUserService)
 	req := httptest.NewRequest(http.MethodGet, "/fake-path", nil)
 	req = mux.SetURLVars(req, map[string]string{"userId": notExistingID})
 	res := httptest.NewRecorder()
-	userService.FindUserById(res, req)
+	findUserHandler.FindUser(res, req)
 
-	var respError response.GenericError
+	var respError rest.GenericError
 	err := json.Unmarshal(res.Body.Bytes(), &respError)
 	if err != nil {
 		log.Fatal(s.T(), err, res.Body.String())

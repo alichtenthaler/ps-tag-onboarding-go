@@ -10,4 +10,3 @@ type Error struct {
 func (e Error) Error() string {
 	return fmt.Sprintf("%v", e.Message)
 }
-

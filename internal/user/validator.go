@@ -51,5 +51,3 @@ func (u *User) validateName() string {
 
 	return ""
 }
-
-

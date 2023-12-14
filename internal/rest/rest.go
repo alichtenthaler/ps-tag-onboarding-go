@@ -4,32 +4,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/alichtenthaler/ps-tag-onboarding-go/api/internal/user"
-	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 )
 
-// Rest represents the http handler
+// Rest represents the response handler
 type Rest struct {
 	server *http.Server
 }
 
-// New creates the http handler
-func New(port int, userService *user.Service) *Rest {
+// New creates the response handler
+func New(port int, router *mux.Router) *Rest {
 
 	return &Rest{
 		&http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
-			Handler: newRouter(userService),
+			Handler: router,
 		},
 	}
 }
 
-// Start starts the http server
+// Start starts the response server
 func (rest *Rest) Start() {
 
 	log.Info().Msgf("Server listening on %s", rest.server.Addr)
@@ -56,7 +57,7 @@ func (rest *Rest) Start() {
 	log.Info().Msg("Server was shutdown properly")
 }
 
-// Shutdown shuts down the http server gracefully
+// Shutdown shuts down the response server gracefully
 func (rest *Rest) shutdown(ctx context.Context) error {
 
 	if err := rest.server.Shutdown(ctx); err != nil {

@@ -1,4 +1,4 @@
-package response
+package rest
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ func TestSendResponseWithData(t *testing.T) {
 		statusCode int
 	}{
 		{
-			name:       "Send response status 200",
+			name: "Send response status 200",
 			data:       data{FirstName: "Ann", LastName: "Peterson", Email: "a@p.com", Age: 20},
 			statusCode: 200,
 		},
@@ -67,7 +67,7 @@ func TestSendError(t *testing.T) {
 	status := http.StatusInternalServerError
 	errToSend := errs.Error{Message: "server error"}
 
-	SendError(response, status, errToSend)
+	SendError(response, errToSend)
 
 	genErr := GenericError{
 		Error: errToSend.Error(),
@@ -92,7 +92,7 @@ func TestSendValidationError(t *testing.T) {
 		Details: []string{"error 1", "error 2"},
 	}
 
-	SendValidationError(response, status, validationErr)
+	SendError(response, validationErr)
 
 	errBytes, err := json.Marshal(validationErr)
 	if err != nil {

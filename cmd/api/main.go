@@ -36,9 +36,13 @@ func main() {
 
 	log.Info().Msg("Connected to the database")
 
-	userService := user.New(dbConnection)
+	createUserService := user.NewCreateUserService(dbConnection)
+	createUserHandler := rest.NewCreateUserHandler(createUserService)
+
+	findUserService := user.NewFindUserService(dbConnection)
+	findUserHandler := rest.NewFindUserHandler(findUserService)
 
 	log.Info().Msg("Starting HTTP server")
 
-	rest.New(configs.Port, userService).Start()
+	rest.New(configs.Port, rest.NewRouter(createUserHandler, findUserHandler)).Start()
 }
