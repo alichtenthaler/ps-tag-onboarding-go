@@ -20,20 +20,36 @@ type Rest struct {
 }
 
 // New creates the response handler
-func New(port int, router *mux.Router) *Rest {
+func New(router *mux.Router, options ...func(*Rest)) *Rest {
 
-	return &Rest{
+	server := &Rest{
 		&http.Server{
-			Addr:    fmt.Sprintf(":%d", port),
 			Handler: router,
 		},
+	}
+
+	for _, o := range options {
+		o(server)
+	}
+
+	return server
+}
+
+func WithPort(port int) func(*Rest) {
+	return func(s *Rest) {
+		s.server.Addr = fmt.Sprintf(":%d", port)
 	}
 }
 
 // Start starts the response server
 func (rest *Rest) Start() {
 
-	log.Info().Msgf("Server listening on %s", rest.server.Addr)
+	port := "80"
+	if rest.server.Addr != "" {
+		port = rest.server.Addr
+	}
+
+	log.Info().Msgf("Server listening on %s", port)
 	go func() {
 
 		if err := rest.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

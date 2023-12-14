@@ -44,5 +44,5 @@ func main() {
 
 	log.Info().Msg("Starting HTTP server")
 
-	rest.New(configs.Port, rest.NewRouter(createUserHandler, findUserHandler)).Start()
+	rest.New(rest.NewRouter(createUserHandler, findUserHandler), rest.WithPort(configs.Port)).Start()
 }
